@@ -1,6 +1,8 @@
 from OpenSSL import crypto, SSL
 
 from pyhanko.sign import signers
+from pyhanko import stamp
+from pyhanko.sign.fields import SigFieldSpec, append_signature_field
 from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
 
 def generate_cert_pkey(email_address, common_name, country_name, locality_name, state_or_province_name, organization_name, organization_unit_name, serial_number, validity_start_in_seconds=0, validity_end_in_seconds=5*365*24*60*60):
@@ -37,10 +39,21 @@ def cert_pk_to_signer(cert_pk_pair):
     (cert, pk) = cert_pk_pair
     return signers.SimpleSigner.load(pk, cert)
 
-async def sign_pdf(pdf_doc, signer, stamp_style, **metadata):
-    w = IncrementalPdfFileWriter(doc)
+def text_stamp_style(text, box_style=None, background=None):
+    stamp.TextStampStyle(
+        stamp_text=text,
+        text_box_style=box_style,
+        background=background
+    )
+
+async def sign_pdf(pdf_doc, signer, stamp_style, field_name, pos, size, page, **metadata):
+    w = IncrementalPdfFileWriter(pdf_doc)
+    (x, y) = pos
+    (h, w) = size
+    box = (x, x+w, y, y+w)
+    append_signature_field(w, sig_field_spec=SigFieldSpec(field_name, box=box, on_page=page))
     out = await signers.async_sign_pdf(w, 
-            signers.PDFSignatureMetadata(**metadata),
+            signers.PDFSignatureMetadata(field_name=field_name, **metadata),
             signer=signer,
             stamp_style=stamp_style)
     return out
