@@ -21,8 +21,8 @@ class LoginForm(FlaskForm):
 
 class RegisterUserForm(FlaskForm):
     email = StringField('email', validators=[DataRequired(), Email()])
-    password = PasswordField('password', validators=[DataRequired(), Length(min=4, max=4), EqualTo('confirm_password')])
-    confirm_password = PasswordField('confirm_password', validators=[Length(min=4, max=4)])
+    password = PasswordField('password', validators=[DataRequired(), Length(min=4), EqualTo('confirm_password')])
+    confirm_password = PasswordField('confirm_password', validators=[Length(min=4)])
 
 class CreateCertForm(FlaskForm):
     common_name = StringField('common_name', validators=[DataRequired()])
